@@ -1,28 +1,39 @@
 package Andersen.SeqDemo.Model;
 
+import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 
+import javax.persistence.Column;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
+import java.util.Collection;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-public enum Role {
-    USER(Set.of(Permission.DEVELOPERS_READ)),
-    ADMIN(Set.of(Permission.DEVELOPERS_READ,Permission.DEVELOPERS_WRITE));
+public class Role {
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+    @Column(name = "role")
+    private String role;
 
 
-    private final Set<Permission> permissions;
-
-    Role(Set<Permission> permissions) {
-        this.permissions = permissions;
+    public Role (String role){
+        this.role=role;
     }
+    private Set<SimpleGrantedAuthority> permissions;
 
-    public Set<Permission> getPermissions() {
+
+    public Collection<? extends GrantedAuthority> getAuthorities() {
+        permissions.clear();
+        switch (this.role){
+            case "admin": permissions.add(new SimpleGrantedAuthority("write"));
+            case "rm": permissions.add(new SimpleGrantedAuthority("read"));
+            case "hrm": permissions.add(new SimpleGrantedAuthority("write"));
+            case "arm": permissions.add(new SimpleGrantedAuthority("read"));
+        }
         return permissions;
-    }
 
-    public Set<SimpleGrantedAuthority> getAuthorities() {
-        return getPermissions().stream()
-                .map(permission -> new SimpleGrantedAuthority(permission.getPermission()))
-                .collect(Collectors.toSet());
     }
 }
